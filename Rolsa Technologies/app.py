@@ -4,7 +4,6 @@ import re
 import pandas as pd
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
 
 Login_CSV = '/workspaces/exam/Rolsa Technologies/login.csv'
 Consultation_CSV = '/workspaces/exam/consultation.csv'
@@ -43,10 +42,10 @@ def login():
             for row in reader:
                 if row[0] == email and row[1] == password:
                     #reroute to the admin window were consultations can be confirmed
-                    if email == "admin1@admin.com" and password == "Admin1234!":
-                        global Admin_status
-                        Admin_status = True
-                        return redirect(url_for('admin'))
+                    #if email == "admin1@admin.com" and password == "Admin1234!":
+                        #global Admin_status
+                        #Admin_status = True
+                        #return redirect(url_for('admin'))
                     global Name
                     Name = row[2]
                     global logged_in
@@ -62,6 +61,13 @@ def signup():
         name = request.form['name']
         email = request.form['email']
         password = request.form['password']
+        with open(Login_CSV, 'r') as file:
+                reader = csv.reader(file, delimiter=',') 
+                for row in reader:
+                    #reading the csv for instances of the email being used
+                    #if email is found then user will not be added to login list
+                    if row[0] == email:
+                        return redirect(url_for('signup'))
         if not is_valid_email(email):
             flash('Invalid email address')
         elif not is_valid_password(password):
@@ -70,7 +76,6 @@ def signup():
             with open(Login_CSV, 'a', newline='') as file:
                 writer = csv.writer(file)
                 writer.writerow([email, password,name])
-            flash('Signup successful! Please login.')
             return redirect(url_for('login'))
     return render_template('signup.html')
 
@@ -95,32 +100,72 @@ def book_consultation():
         name = Name
         address = request.form['address']
         date = request.form['date']
-        with open('consultation.csv', 'a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow([name, address, date])
-        flash('Consultation booked successfully!')
-    return render_template('book_consultation.html')
+        f=open(Consultation_CSV,"r")
+        reader=csv.reader(f)
+        found = False
+        for row in reader:
+            if name in row:
+                found = True
+        f.close()
+        if found == False:
+            with open('consultation.csv', 'a', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow([name, address, date])
+            flash('Consultation booked successfully!')
+            return redirect(url_for('index'))
+        else:
+            flash('User has already booked a consultation')
+
+        return render_template('book_consultation.html')
 
 # Carbon footprint calculator
 @app.route('/carbon_footprint', methods=['GET', 'POST'])
 def carbon_footprint():
     if request.method == 'POST':
-        drives_to_work = request.form.get('drives_to_work') == 'yes'
-        miles = float(request.form.get('miles', 0))
-        mpg = float(request.form.get('mpg', 0))
-        if drives_to_work and miles > 0 and mpg > 0:
-            carbon_footprint = (miles / mpg) * 8.887  # CO2 per gallon of petrol
-            return render_template('carbon_footprint.html', carbon_footprint=carbon_footprint)
-        else:
-            flash('Please provide valid inputs')
+        drives_to_work = request.form.get('drives_to_work')
+        miles = float(request.form.get('miles', 0)) 
+        bill_electric = float (request.form.get('electric bill',0))
+        bill_electric = bill_electric *105
+        bill_gas = float (request.form.get('gas bill', 0))
+        bill_gas = bill_gas * 105
+        recycles = request.form.get('recycles') 
+        carbon_footprint =bill_electric + bill_gas
+        if drives_to_work == "yes":
+            miles = miles * 365
+            carbon_footprint = carbon_footprint+ (miles* 0.79) 
+        if recycles == "no":
+            carbon_footprint = carbon_footprint + 250
+
+        return render_template('carbon_footprint.html', carbon_footprint=carbon_footprint)
+    else:
+        flash('Please provide valid inputs')
     return render_template('carbon_footprint.html')
 
-@app.route('/admin')
+@app.route('/admin', methods=['POST'])
 def admin():
-        with open(Consultation_CSV, 'r') as file:
-            data = pd.read_csv(file, header=0) 
-            Consultation = data.values 
-        return render_template('admin.html', Consultation=Consultation)
+    if request.method == 'POST':
+        row_id = request.form.get('row_id')
+        new_value = request.form.get('authorised')
+        
+        # Read the CSV file and update the authorised field
+        rows = []
+        with open(Consultation_CSV,'r') as file:
+            csv_reader = csv.DictReader(file)
+            fieldnames = csv_reader.fieldnames
+            for row in csv_reader:
+                if row.get('id') == row_id: 
+                    row['authorised'] = new_value
+                rows.append(row)
+        
+        # Write the updated data back to the CSV
+        with open(Consultation_CSV, mode='w', newline='') as file:
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(rows)
+    
+    return redirect(url_for('admin'))
+
+
 
 
 if __name__ == '__main__':
