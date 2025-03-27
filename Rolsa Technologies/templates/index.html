@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="dashboard-container">
+    <nav>
+        <a href="{{ url_for('login') }}">Login</a>
+        <a href="{{ url_for('book_consultation') }}">Book Consultation</a>
+        <a href="{{ url_for('carbon_footprint') }}">Carbon Footprint</a>
+    </nav>
+</div>
+
+<!-- Slideshow container -->
+<style>
+  body {margin:25px;}
+  
+  div.polaroid {
+    width: 80%;
+    background-color: white;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    margin-bottom: 25px;
+  }
+  
+  div.container {
+    text-align: center;
+    padding: 10px 20px;
+  }
+  </style>
+  </head>
+  <body>
+  
+  <div class="polaroid">
+    <img src="/workspaces/exam/Rolsa Technologies/static/image1.jpg" alt="Wind Turbines" style="width:100%">
+    <div class="container">
+    <p>Wind power</p>
+    </div>
+  </div>
+  
+  <div class="polaroid">
+    <img src="/workspaces/exam/Rolsa Technologies/static/image2.jpg" alt="Solar panels" style="width:100%">
+    <div class="container">
+    <p>Solar Technologies</p>
+    </div>
+  </div>
+  
+  <div class="polaroid">
+    <img src="/workspaces/exam/Rolsa Technologies/static/image3.jpg" alt="Tidal power" style="width:100%">
+    <div class="container">
+    <p>Tidal power</p>
+    </div>
+
+    <div class="polaroid">
+      <img src="/workspaces/exam/Rolsa Technologies/static/image4.jpg" alt="Geothermal energy" style="width:100%">
+      <div class="container">
+      <p>Geothermal energy</p>
+      </div>
+    </div>
+  </div>  
+  </body>
+
+
+
+{% endblock %}
