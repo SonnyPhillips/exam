@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<head>
+    <title>Admin Panel</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Unconfirmed Consultations</h1>
+    
+    {% if consultations %}
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for consult in consultations %}
+            <tr>
+                <td>{{ consult.name }}</td>
+                <td>{{ consult.address }}</td>
+                <td>{{ consult.date }}</td>
+                <td>
+                    <form method="POST" action="/admin">
+                        <input type="hidden" name="name" value="{{ consult.name }}">
+                        <input type="hidden" name="date" value="{{ consult.date }}">
+                        <button type="submit">Confirm</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No unconfirmed consultations found.</p>
+    {% endif %}
+</body>
+</html>
